@@ -10,8 +10,23 @@ file(GLOB_RECURSE SOURCES
         src/*.cpp
         )
 
+if (CMAKE_RC_COMPILER)
+    # Append assets/light.rc to list sources
+    list(APPEND SOURCES assets/icon/light.rc)
+endif()
+
 # add the executable
 add_executable(Editor ${SOURCES})
+
+# -Werror
+target_compile_options(Editor PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
+    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>
+)
+# Supress glm quat warning
+target_compile_definitions(Editor PRIVATE
+    -DGLM_FORCE_SILENT_WARNINGS
+)
 
 if (WIN32)
     if (MSVC)
@@ -35,6 +50,9 @@ target_link_libraries(Editor LightFramework)
 
 add_subdirectory(../Physicc Physicc)
 target_link_libraries(Editor Physicc)
+
+add_subdirectory(../shared/libs/tracy TracyClient)
+target_link_libraries(Editor TracyClient)
 
 add_custom_command(TARGET Editor POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/imgui.ini $<TARGET_FILE_DIR:Editor>)
 

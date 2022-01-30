@@ -1,10 +1,10 @@
-
 #include "gui/scenepanel.hpp"
 
 #include "physicsworld.hpp"
 #include "imgui.h"
 #include "light.hpp"
 #include "core/entrypoint.hpp"
+
 
 class MainLayer : public Light::Layer
 {
@@ -166,7 +166,7 @@ public:
 		m_viewportFocused = ImGui::IsWindowFocused();
 
 		ImVec2 viewPortPanelSize = ImGui::GetContentRegionAvail();
-		if(m_viewportPanelSize != *(glm::vec2*)&viewPortPanelSize)
+		if(m_viewportPanelSize.x != viewPortPanelSize.x || m_viewportPanelSize.y != viewPortPanelSize.y)
 		{
 			m_resizeViewport = true;
 			m_viewportPanelSize = glm::vec2(viewPortPanelSize.x, viewPortPanelSize.y);
@@ -178,7 +178,7 @@ public:
 
 		// Perf Stats
 		{
-			ImGuiIO& io = ImGui::GetIO();
+			// ImGuiIO& io = ImGui::GetIO();
 			ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 			if (s_stats_corner != -1)
 			{

@@ -18,9 +18,23 @@ namespace Light {
 		fbspecOutline.height = 720;
 		m_outlineFramebuffer = Light::Framebuffer::create(fbspecOutline);
 
+		Light::FramebufferSpec depthBuffer;
+		depthBuffer.attachments = {
+			// { Light::FramebufferTextureFormat::RED_INTEGER, Light::TextureWrap::CLAMP_TO_BORDER },
+			{ Light::FramebufferTextureFormat::Depth, Light::TextureWrap::CLAMP_TO_BORDER }
+		};
+		depthBuffer.width = 1280;
+		depthBuffer.height = 1280;
+		m_depthBuffer = Light::Framebuffer::create(depthBuffer);
+		m_depth_shader = Light::Shader::create("assets/shaders/depth.glsl");
+		m_depthBuffer->bind();
+		m_depth_shader->bind();
+		m_debug_shader = Light::Shader::create("assets/shaders/debug.glsl");
+		texture = m_depthBuffer->attachDepthTexture(texture);
+		
 		// Skybox Mesh (Cube)
 		m_skybox_mesh.reset(VertexArray::create());
-
+		
 		float vertices[] = {
 				//Front
 				-1.0, -1.0, 1.0,
@@ -116,14 +130,82 @@ namespace Light {
 		m_outlineFramebuffer->resize(width, height);
 	}
 
+
+	void SceneRenderer::renderShadows(std::shared_ptr<Scene> scene)
+	{	
+
+		//Light::RenderCommand::clear();
+	
+		m_depthBuffer->bind();
+		m_depth_shader->bind();
+		
+		std::cout<<texture<<std::endl;
+
+		Light::RenderCommand::clearDepthBit();
+
+		// glm::mat4 lightProjection, lightView;
+        // glm::mat4 lightSpaceMatrix;
+        // float near_plane = 1.0f, far_plane = 7.5f;
+		// glm::vec4 lightPos = glm::vec4(-2.0f, 4.0f, -1.0f, 1.0f);
+        // //lightProjection = glm::perspective(glm::radians(45.0f), (GLfloat)SHADOW_WIDTH / (GLfloat)SHADOW_HEIGHT, near_plane, far_plane); // note that if you use a perspective projection matrix you'll have to change the light position as the current light position isn't enough to reflect the whole scene
+        // lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+        // lightView = glm::lookAt(glm::vec3(lightPos), glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+        // lightSpaceMatrix = lightProjection * lightView;
+		// m_depth_shader->setUniformMat4("lightSpaceMatrix",lightSpaceMatrix);
+		// m_framebuffer->attachDepthTexture(m_depthBuffer->getDepthAttachmentRendererId());
+
+		{
+			auto view = scene->m_registry.view<LightComponent, TransformComponent>();
+
+			for (auto& entity : view)
+			{
+
+				auto [light, transform] = view.get(entity);
+				switch (light.m_lightType)
+				{
+				case LightType::Directional:
+					m_depth_shader->setUniformMat4("lightTransform", transform.getSpaceMatrix());
+					
+					break;
+				default:
+					break;
+				}
+			}
+
+		}
+
+		{
+			auto view = scene->m_registry.view<MeshRendererComponent, MeshComponent, TransformComponent>();
+			for (auto& entity : view)
+			{
+				auto [shader, mesh, transform] = view.get(entity);
+				m_depth_shader->setUniformMat4("model", transform.getModel());
+				Renderer::submitID(m_depth_shader, mesh.mesh->getVao(), transform.getTransform(), (uint32_t)entity);
+
+			}
+		}
+		m_depthBuffer->unbind();
+	}
+
 	void SceneRenderer::renderEditor(std::shared_ptr<Scene> scene, EditorCamera &camera)
-	{
+	{	
+		
+		renderShadows(scene);
+		m_debug_shader->bind();
+		m_debug_shader->setUniformInt("depthMap", 8);
 		m_framebuffer->bind();
+		
+		//std::cout<<camera.getDistance();
+
+
 		Light::RenderCommand::setClearColor({0.5f, 0.1f, 0.1f, 1.0f});
 		Light::RenderCommand::clear();
-
+		
 		m_framebuffer->clearAttachment(1, 0);
-
+	
+		// //std::cout<<m_depthBuffer->getDepthAttachmentRendererId()<<std::endl;
+		m_framebuffer->bindDepthTexture(texture, 0);
+		// //  m_framebuffer->bindDepthTexture(m_depthBuffer->getDepthAttachmentRendererId(), 1);
 		Light::Renderer::beginScene(camera, camera.getViewMatrix());
 
 		std::vector<PointLight> pointLights;
@@ -139,7 +221,7 @@ namespace Light {
 				switch (light.m_lightType)
 				{
 				case LightType::Directional:
-					directionalLights.push_back({glm::normalize(transform.getTransform() * glm::vec4(0.0, 0.0, 1.0, 0.0)), light.m_lightColor});
+					directionalLights.push_back({transform.position,glm::normalize(transform.getTransform() * glm::vec4(0.0, 0.0, 1.0, 0.0)), light.m_lightColor,transform.getSpaceMatrix()});
 					break;
 				case LightType::Point:
 					pointLights.push_back({transform.position, light.m_lightColor, light.m_range});
@@ -155,8 +237,8 @@ namespace Light {
 		Renderer::submitLight(directionalLights);
 		Renderer::submitLight(pointLights);
 		Renderer::submitLight(spotLights);
-
-		// Render Skybox
+		
+		// // Render Skybox
 		scene->m_skybox->bind();
 		Renderer::submitSkybox(m_skybox_shader, m_skybox_mesh);
 
@@ -166,11 +248,15 @@ namespace Light {
 			for (auto& entity : view)
 			{
 				auto [shader, mesh, transform] = view.get(entity);
+				shader.shader->bind();
+				shader.shader->setUniformInt("depthMap", 0);
 				Renderer::submitID(shader.shader, mesh.mesh->getVao(), transform.getTransform(), (uint32_t)entity);
 
 			}
 		}
-
+		// m_debug_shader->bind();
+		// m_framebuffer->bindDepthTexture(texture, 8);
+		// m_framebuffer->renderQuad();
 		Light::Renderer::endScene();
 	}
 

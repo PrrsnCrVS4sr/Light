@@ -22,6 +22,7 @@ namespace Light
 		inline static void drawIndexed(const std::shared_ptr<VertexArray>& vao) { s_rendererApi->drawIndexed(vao); }
 		inline static void clear() { s_rendererApi->clear(); }
 		inline static void setClearColor(glm::vec4 color) { s_rendererApi->setClearColor(color); }
+		inline static void clearDepthBit() { s_rendererApi->clearDepthBit();}
 		
 	private:
 		static RendererAPI* s_rendererApi;

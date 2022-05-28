@@ -31,6 +31,7 @@ namespace Light
 		{
 			glm::mat4 viewProjectionMatrix;
 			glm::mat4 viewProjectionSkyboxMatrix;
+			glm::mat4 lightSpaceMatrix;
 			glm::vec3 cameraPosition;
 			std::vector<PointLight> pointLights;
 			std::vector<SpotLight> spotLights;

@@ -23,22 +23,32 @@ public:
 		fbspec.height = 720;
 		m_framebuffer = Light::Framebuffer::create(fbspec);
 
+
+		Light::FramebufferSpec depthspec;
+		depthspec.attachments = {
+			{ Light::FramebufferTextureFormat::Depth, Light::TextureWrap::CLAMP_TO_BORDER }
+		};
+		depthspec.width = 1280;
+		depthspec.height = 720;
+		m_depthbuffer = Light::Framebuffer::create(fbspec);
+
 		m_sceneRenderer.setTargetFramebuffer(m_framebuffer);
 
 		m_scene = std::make_shared<Light::Scene>();
 
 		auto cube = m_scene->addEntity("Cube");
 		cube.addComponent<Light::MeshRendererComponent>("assets/shaders/phong.glsl");
-
+		auto& cube_transform = cube.getComponent<Light::TransformComponent>();
+		cube_transform.position = glm::vec3(2, 1, 2);
 		auto floor = m_scene->addEntity("Floor");
 		auto& floor_transform = floor.getComponent<Light::TransformComponent>();
-		floor_transform.position = glm::vec3(0, -1, 0);
-		floor_transform.scale = glm::vec3(2, 0.1, 2);
+		floor_transform.position = glm::vec3(0, 0, 0);
+		floor_transform.scale = glm::vec3(5, 0.5, 5);
 		floor.addComponent<Light::MeshRendererComponent>("assets/shaders/phong.glsl");
 
 		auto light = m_scene->addEntity("Light");
 		auto& light_transform = light.getComponent<Light::TransformComponent>();
-		light_transform.position = glm::vec3(-1,2,1.5);
+		light_transform.position = glm::vec3(-2.0,4.0,-1.0);
 		light.addComponent<Light::LightComponent>();
 
 		m_meshes = std::make_shared<Light::MeshLibrary>();
@@ -93,8 +103,8 @@ public:
 		m_framebuffer->unbind();
 
 		auto entity = m_scenePanel.getSelectionContext();
-		m_sceneRenderer.renderOutline(m_scene, entity);
-
+		// m_sceneRenderer.renderOutline(m_scene, entity);
+	
 	}
 
 	bool onWindowResize(Light::WindowResizeEvent& e)
@@ -401,6 +411,7 @@ private:
 	Light::EditorCamera m_camera;
 
 	std::shared_ptr<Light::Framebuffer> m_framebuffer;
+	std::shared_ptr<Light::Framebuffer> m_depthbuffer;
 
 	std::shared_ptr<Light::Scene> m_scene;
 	Light::ScenePanel m_scenePanel;

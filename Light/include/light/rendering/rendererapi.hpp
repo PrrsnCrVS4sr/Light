@@ -17,6 +17,7 @@ namespace Light
 		virtual void clear() = 0;
 
 		virtual void drawIndexed(const std::shared_ptr<VertexArray>& vao) = 0;
+		virtual void clearDepthBit() = 0;
 	};
 }
 

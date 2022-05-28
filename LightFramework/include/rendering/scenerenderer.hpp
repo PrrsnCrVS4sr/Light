@@ -29,7 +29,7 @@ namespace Light {
 
 		void renderEditor(std::shared_ptr<Scene> scene, EditorCamera &camera);
 		void renderOutline(std::shared_ptr<Scene> scene, Entity entity);
-
+		void renderShadows(std::shared_ptr<Scene> scene);
 		void onViewportResize(int width, int height);
 
 		/*
@@ -43,11 +43,16 @@ namespace Light {
 		std::shared_ptr<Light::Shader> m_skybox_shader;
 		std::shared_ptr<Light::Shader> m_outline_shader;
 		std::shared_ptr<Light::Shader> m_outline_temp_shader;
+		std::shared_ptr<Light::Shader> m_depth_shader;
+		std::shared_ptr<Light::Shader> m_debug_shader;
 		std::shared_ptr<Light::VertexArray> m_skybox_mesh;
 		std::shared_ptr<Light::VertexArray> m_outline_mesh;
 
 		std::shared_ptr<Light::Framebuffer> m_framebuffer;
 		std::shared_ptr<Light::Framebuffer> m_outlineFramebuffer;
+		std::shared_ptr<Light::Framebuffer> m_depthBuffer;
+		
+		uint32_t texture;
 	};
 }
 

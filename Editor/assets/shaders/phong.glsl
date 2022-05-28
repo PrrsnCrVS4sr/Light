@@ -4,13 +4,17 @@
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec4 a_Color;
 layout(location = 2) in vec3 a_Normal;
+
 out vec4 v_color;
 out vec3 v_normal;
 out vec3 v_worldPos;
+out vec4 fragPosLightSpace;
 
 uniform mat4 u_viewProjectionMatrix;
-uniform mat4 u_transform;
+uniform mat4 lightSpaceMatrix;
+uniform mat4 u_transform; //model 
 uniform mat3 u_normal;
+
 
 void main()
 {
@@ -18,6 +22,7 @@ void main()
 	v_color = a_Color;
 	v_normal = u_normal * a_Normal;
 	v_worldPos = vec3(u_transform * vec4(a_Position, 1.0));
+	fragPosLightSpace = lightSpaceMatrix * vec4(v_worldPos , 1.0);
 }
 
 #type fragment
@@ -26,6 +31,7 @@ void main()
 in vec3 v_normal;
 in vec4 v_color;
 in vec3 v_worldPos;
+in vec4 fragPosLightSpace;
 layout(location = 0) out vec4 color;
 layout(location = 1) out int entity;
 
@@ -46,12 +52,14 @@ struct SpotLight
 };
 
 struct DirectionalLight
-{
+{	
+	vec4 position;
 	vec4 direction;
 	vec4 color;
 
 };
 
+uniform sampler2D depthMap;
 uniform PointLight u_pointLights[4];
 uniform SpotLight u_spotLights[4];
 uniform DirectionalLight u_directionalLights[4];
@@ -60,6 +68,28 @@ uniform int u_numPointLights;
 uniform int u_numSpotLights;
 uniform int u_id;
 uniform int u_selectionId;
+
+
+float shadowCalculate( vec4 lightPos, vec3 norm)
+{
+
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+ 
+    projCoords = projCoords * 0.5 + 0.5;
+	vec3 lightDir = normalize(lightPos.xyz - v_worldPos);
+    float closestDepth = texture(depthMap, projCoords.xy).r; 
+
+    float currentDepth = projCoords.z;
+
+    float bias = max(0.05 * (1.0 - dot(norm, lightDir)), 0.005);
+
+	float shadow = (currentDepth - bias > closestDepth ) ? 1.0 : 0.0; 
+  
+    if(projCoords.z > 1.0)
+        shadow = 0.0;
+        
+    return shadow;
+}
 
 vec4 pointLightCalculate(PointLight light, vec3 norm, vec3 viewDir)
 {
@@ -84,7 +114,7 @@ vec4 pointLightCalculate(PointLight light, vec3 norm, vec3 viewDir)
 vec4 directionalLightCalculate(DirectionalLight light, vec3 norm, vec3 viewDir)
 {	
 	vec4 color = vec4(light.color);
-	vec3 lightDir = normalize(vec3(light.direction));
+	vec3 lightDir = normalize(light.position.xyz - v_worldPos);
 	float diff = max(dot(norm, lightDir), 0.0);
 	vec4 diffuse = diff * color;
 
@@ -93,8 +123,8 @@ vec4 directionalLightCalculate(DirectionalLight light, vec3 norm, vec3 viewDir)
 	vec3 halfwayDir = normalize(lightDir + viewDir);
 	float spec = pow(max(dot(halfwayDir, norm), 0.0), 64);
 	vec4 specular = spec * color;
-
-	vec4 result = diffuse + specular;
+	float shadow = shadowCalculate(light.position, norm);
+	vec4 result = (1.0f - shadow)*(diffuse + specular);
 	return result;
 }
 

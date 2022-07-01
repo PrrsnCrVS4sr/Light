@@ -52,4 +52,14 @@ namespace Light
 	{
 		glClear(GL_DEPTH_BUFFER_BIT);
 	}
+
+	void OpenGLRendererAPI::cullFaceFront()
+	{
+		glCullFace(GL_FRONT);
+	}
+
+	void OpenGLRendererAPI::cullFaceBack()
+	{
+		glCullFace(GL_BACK);
+	}
 }

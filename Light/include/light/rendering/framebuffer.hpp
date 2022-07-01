@@ -95,10 +95,9 @@ namespace Light
 		virtual void unbind() = 0;
 
 		virtual void bindAttachmentTexture(uint32_t attachmentIndex, uint32_t slot) = 0;
-		virtual void bindDepthTexture(unsigned int texture, uint32_t slot) = 0;
+		virtual void bindDepthTextureArray(unsigned int texture, uint32_t slot) = 0;
 		virtual unsigned int attachDepthTexture(unsigned int t) =0;
 		virtual void renderQuad() = 0;
-		virtual void bT(unsigned int depthMap) = 0;
 		
 		static std::shared_ptr<Framebuffer> create(const FramebufferSpec& spec);
 	};	

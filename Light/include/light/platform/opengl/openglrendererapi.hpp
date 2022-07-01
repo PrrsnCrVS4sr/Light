@@ -16,6 +16,8 @@ namespace Light
 
 		void drawIndexed(const std::shared_ptr<VertexArray>& vao) override;
 		void clearDepthBit() override;
+		void cullFaceFront() override;
+		void cullFaceBack() override;
 	};
 
 }

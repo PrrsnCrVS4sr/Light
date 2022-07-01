@@ -23,6 +23,18 @@ namespace Light
 		inline static void clear() { s_rendererApi->clear(); }
 		inline static void setClearColor(glm::vec4 color) { s_rendererApi->setClearColor(color); }
 		inline static void clearDepthBit() { s_rendererApi->clearDepthBit();}
+		inline static void cullFace(int face)
+		{
+			switch (face)
+			{
+			case 0:
+				s_rendererApi->cullFaceFront();
+				break;
+			case 1:
+				s_rendererApi->cullFaceBack();
+				break;
+			}
+		}
 		
 	private:
 		static RendererAPI* s_rendererApi;

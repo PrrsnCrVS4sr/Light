@@ -37,9 +37,8 @@ namespace Light
 			return m_depthAttachmentId;
 		}
 		virtual void bindAttachmentTexture(uint32_t attachmentIndex, uint32_t slot) override;
-		virtual void bindDepthTexture(unsigned int texture, uint32_t slot) override;
+		virtual void bindDepthTextureArray(unsigned int texture, uint32_t slot) override;
 		virtual unsigned int attachDepthTexture(unsigned int t) override;
-		virtual void bT(unsigned int depthMap) override;
 		virtual void renderQuad() override;
 	
 		

@@ -29,7 +29,7 @@ namespace Light {
 
 		void renderEditor(std::shared_ptr<Scene> scene, EditorCamera &camera);
 		void renderOutline(std::shared_ptr<Scene> scene, Entity entity);
-		void renderShadows(std::shared_ptr<Scene> scene);
+		void renderShadows(std::shared_ptr<Scene> scene, EditorCamera &camera);
 		void onViewportResize(int width, int height);
 
 		/*

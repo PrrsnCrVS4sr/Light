@@ -275,7 +275,7 @@ namespace Light
 		Renderer::submitLight(pointLights);
 		Renderer::submitLight(spotLights);
 
-		// // Render Skybox
+		// Render Skybox
 		scene->m_skybox->bind();
 
 		glm::mat4 viewMat = camera.getViewMatrix();
@@ -291,7 +291,6 @@ namespace Light
 			{
 				auto [shader, mesh, transform] = view.get(entity);
 				shader.shader->bind();
-				shader.shader->setUniformInt("depthMap", 0);
 				for (int i = 0; i < shadowCascadeLevels.size(); i++)
 				{
 					shader.shader->setUniformFloat("cascadePlaneDistances[" + std::to_string(i) + "]", shadowCascadeLevels[i]);

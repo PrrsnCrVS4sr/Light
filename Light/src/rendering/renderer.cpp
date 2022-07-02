@@ -58,6 +58,7 @@ namespace Light
 		shader->setUniformMat4("u_viewProjectionMatrix", s_sceneData->viewProjectionMatrix);
 		shader->setUniformMat4("model" , transform);
 		shader->setUniformInt("depthMap",0);
+				
 		for (size_t i = 0; i < 4; i++)
 		{
 			if (i < s_sceneData->pointLights.size())
@@ -101,15 +102,13 @@ namespace Light
 				shader->setUniformVec4("u_directionalLights[" + std::to_string(i) + "].position", glm::vec4(s_sceneData->directionalLights[i].position, 1.0));
 				shader->setUniformVec4("u_directionalLights[" + std::to_string(i) + "].direction", glm::vec4(s_sceneData->directionalLights[i].direction, 0.0));
 				shader->setUniformVec4("u_directionalLights[" + std::to_string(i) + "].color", glm::vec4(s_sceneData->directionalLights[i].color, 1.0));
-				// shader->setUniformMat4("u_directionalLights[" + std::to_string(i) + "].lightSpaceMatrix", s_sceneData->directionalLights[i].lightSpaceMatrix);
-				// shader->setUniformMat4("lightSpaceMatrix", s_sceneData->directionalLights[i].lightSpaceMatrix);
+
 			} else
 			{	
 				shader->setUniformVec4("u_directionalLights[" + std::to_string(i) + "].position", glm::vec4(0.0,0.0,0.0, 1.0));
 				shader->setUniformVec4("u_directionalLights[" + std::to_string(i) + "].direction", glm::vec4(0.0, 0.0, 0.0, 0.0));
 				shader->setUniformVec4("u_directionalLights[" + std::to_string(i) + "].color", glm::vec4(0.0, 0.0, 0.0, 1.0));
-				// shader->setUniformMat4("u_directionalLights[" + std::to_string(i) + "].lightSpaceMatrix", glm::mat4(1.0));
-				//shader->setUniformMat4("lightSpaceMatrix", glm::mat4(1.0));
+				
 			}
 		}
 

@@ -15,13 +15,17 @@ namespace Light
 		RenderCommand::setViewPort(0, 0, width, height);
 	}
 
-	void Renderer::beginScene(Camera& camera, glm::mat4 camera_view)
+	void Renderer::beginScene(Camera& camera, glm::mat4 camera_view,std::vector<glm::mat4> lightSpaceMatrices ,float farPlane, std::vector<float> cascadeLevels)
 	{
 		s_sceneData->viewProjectionMatrix = camera.getProjectionMatrix() * camera_view;
 
 		glm::mat4 view = glm::mat4(glm::mat3(camera_view));
 		s_sceneData->viewProjectionSkyboxMatrix = camera.getProjectionMatrix() * view;
 		s_sceneData->cameraPosition = -glm::vec3(camera_view[3] * view);
+		s_sceneData->viewMatrix = camera_view;
+		s_sceneData->farPlane = farPlane;
+		s_sceneData->cascadeLevels = cascadeLevels;
+		s_sceneData->lightSpaceMatrices = lightSpaceMatrices;
 	}
 
 	void Renderer::beginScene(glm::mat4 viewProjectionMatrix, glm::vec3 position)
@@ -58,7 +62,7 @@ namespace Light
 		submitID(shader, vao, transform);
 	}
 
-	void Renderer::submitID(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexArray>& vao, glm::mat4 transform, int id)
+	void Renderer::submitID(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexArray>& vao, glm::mat4 transform,int id)
 	{
 		vao->bind();
 
@@ -74,16 +78,29 @@ namespace Light
 
 		shader->setUniformVec3("cameraPos", s_sceneData->cameraPosition);
 
-		
+		shader->setUniformInt("depthMap",4);
 
 		for (unsigned int i = 0; i < 4; i++)
 		{
 			if (i < s_sceneData->directionalLights.size())
 			{
-				shader->setUniformInt("u_dirLights[" + std::to_string(i) + "].depthMap", i + 4);
+				
 				shader->setUniformVec4("u_dirLights[" + std::to_string(i) + "].emission_color", glm::vec4(s_sceneData->directionalLights[i].color, 1.0));
 				shader->setUniformVec3("u_dirLights[" + std::to_string(i) + "].direction", s_sceneData->directionalLights[i].direction);
-				shader->setUniformMat4("u_dirLights[" + std::to_string(i) + "].lightSpaceMatrix", s_sceneData->directionalLights[i].getSpaceMatrix());
+				for (int j = 0; j < s_sceneData->lightSpaceMatrices.size(); j++)
+				{	
+					shader->setUniformMat4("lightSpaceMatrices["+std::to_string(j)+"]", s_sceneData->lightSpaceMatrices[j]);
+				}
+				
+				for(int j = 0; j<s_sceneData->cascadeLevels.size(); j++)
+				{
+					shader->setUniformFloat("cascadePlaneDistances["+std::to_string(j)+"]",s_sceneData->cascadeLevels[j]);
+				}
+				shader->setUniformMat4("view",s_sceneData->viewMatrix);
+				shader->setUniformFloat("farPlane",s_sceneData->farPlane);
+				shader->setUniformInt("cascadeCount",(int)s_sceneData->cascadeLevels.size());
+				//std::cout<<s_sceneData->cascadeLevels.size()<<" "<<s_sceneData->lightSpaceMatrices.size()<<std::endl;
+				
 			}
 			else
 			{
@@ -137,16 +154,19 @@ namespace Light
 		vao->unbind();
 	}
 
-	void Renderer::submitForDirectionalShadow(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexArray>& vao, glm::mat4 lightSpaceMatrix, glm::mat4 transform)
+	void Renderer::submitForDirectionalShadow(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexArray>& vao, std::vector<glm::mat4> lightSpaceMatrices, glm::mat4 transform)
 	{
 		vao->bind();
 
 		shader->bind();
 		
 		// (void)lightSpaceMatrix;
-		shader->setUniformMat4("u_lightSpaceMatrix", lightSpaceMatrix);
-
 		shader->setUniformMat4("u_transform", transform);
+
+		for (int i = 0; i < lightSpaceMatrices.size(); i++)
+		{
+			shader->setUniformMat4("u_lightSpaceMatrices["+std::to_string(i)+"]", lightSpaceMatrices[i]);
+		}
 
 		RenderCommand::drawIndexed(vao);
 

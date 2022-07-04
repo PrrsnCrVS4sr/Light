@@ -34,6 +34,22 @@ namespace Light
 		glm::vec3 getForwardDirection() const;
 		glm::quat getOrientation() const;
 		float getDistance() const { return m_distance; }
+		std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& projview);
+		std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view);
+		glm::mat4 getLightSpaceMatrix(const float nearPlane, const float farPlane, glm::vec3 lightDir);
+		std::vector<glm::mat4> getLightSpaceMatrices(glm::vec3 lightDir);
+		std::vector<float> getShadowCascadeLevels()
+		{
+			return shadowCascadeLevels;
+		}
+		float getFarPlane()
+		{
+			return m_far;
+		}
+		float getNearPlane()
+		{
+			return m_near;
+		}
 
 
 	private:
@@ -71,6 +87,7 @@ namespace Light
 		uint32_t m_viewportWidth = 1280, m_viewportHeight = 720;
 
 		bool m_blockUpdate = false;
+		std::vector<float> shadowCascadeLevels;
 	};
 
 

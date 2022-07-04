@@ -8,9 +8,9 @@ namespace Light
 	enum class FramebufferTextureType
 	{
 		None,
-
 		TWO_D,
-		CUBEMAP
+		CUBEMAP,
+		TEX_ARRAY
 	};
 
 	enum class FramebufferTextureFormat
@@ -107,6 +107,7 @@ namespace Light
 
 		virtual void bindAttachmentTexture(uint32_t attachmentIndex, uint32_t slot) = 0;
 		virtual void bindDepthAttachmentTexture(uint32_t slot) = 0;
+		
 
 		static std::shared_ptr<Framebuffer> create(const FramebufferSpec& spec);
 	};

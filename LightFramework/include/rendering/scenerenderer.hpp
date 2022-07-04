@@ -29,7 +29,7 @@ namespace Light {
 
 		void renderEditor(std::shared_ptr<Scene> scene, EditorCamera& camera);
 
-		void renderShadows(std::shared_ptr<Scene> scene, DirectionalLight light, int index);
+		void renderShadows(std::shared_ptr<Scene> scene, DirectionalLight light, int index,EditorCamera &camera);
 		void renderShadows(std::shared_ptr<Scene> scene, PointLight light, int index);
 		void renderShadows(std::shared_ptr<Scene> scene, SpotLight light, int index);
 
@@ -50,6 +50,7 @@ namespace Light {
 		std::shared_ptr<Light::Shader> m_outline_temp_shader;
 		std::shared_ptr<Light::Shader> m_depth_shader;
 		std::shared_ptr<Light::Shader> m_depth_cube_shader;
+		std::shared_ptr<Light::Shader> m_debug_shader;
 		std::shared_ptr<Light::VertexArray> m_skybox_mesh;
 		std::shared_ptr<Light::VertexArray> m_outline_mesh;
 
@@ -59,6 +60,7 @@ namespace Light {
 		std::shared_ptr<Light::Framebuffer> m_spotDepthCubeFramebuffer[4];
 		std::shared_ptr<Light::Framebuffer> m_outlineFramebuffer;
 		std::shared_ptr<Light::Framebuffer> m_tempFramebuffer;
+		std::vector<glm::mat4> lightSpaceMatrices;
 
 		//TODO: #63 Directly use texture instead of a dummy framebuffer
 	};

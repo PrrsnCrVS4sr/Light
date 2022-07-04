@@ -16,7 +16,7 @@ namespace Light
 		static void init();
 		static void onWindowResize(uint32_t width, uint32_t height);
 
-		static void beginScene(Camera& camera, glm::mat4 camera_view);
+		static void beginScene(Camera& camera, glm::mat4 camera_view,std::vector<glm::mat4> lightSpaceMatrices ,float farPlane, std::vector<float> cascadeLevels);
 		static void beginScene(glm::mat4 viewProjectionMatrix, glm::vec3 position);
 		static void endScene();
 
@@ -32,7 +32,7 @@ namespace Light
 							int id = -1);
 		static void submitForDirectionalShadow(const std::shared_ptr<Shader>& shader,
 								const std::shared_ptr<VertexArray>& vao,
-								glm::mat4 lightSpaceMatrix = glm::mat4(1.0f),
+								std::vector<glm::mat4> lightSpaceMatrix,
 								glm::mat4 transform = glm::mat4(1.0f));
 		static void submitForCubeShadow(const std::shared_ptr<Shader>& shader,
 								const std::shared_ptr<VertexArray>& vao,
@@ -49,12 +49,16 @@ namespace Light
 		struct SceneData
 		{
 			glm::mat4 viewProjectionMatrix;
+			glm::mat4 viewMatrix;
 			glm::mat4 viewProjectionSkyboxMatrix;
 			glm::mat4 lightSpaceMatrix;
+			std::vector<glm::mat4> lightSpaceMatrices;
 			glm::vec3 cameraPosition;
 			std::vector<PointLight> pointLights;
 			std::vector<SpotLight> spotLights;
 			std::vector<DirectionalLight> directionalLights;
+			std::vector<float> cascadeLevels;
+			float farPlane;
 		};
 
 		static SceneData* s_sceneData;

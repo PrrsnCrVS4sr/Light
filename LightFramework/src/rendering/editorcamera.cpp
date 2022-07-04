@@ -26,6 +26,7 @@ namespace Light
 	{
 		updateView();
 		updateProjection();
+		shadowCascadeLevels = {m_far/100.0f,m_far/70.0f,m_far/55.0f,m_far/25.0f,m_far/10.0f,m_far/2.0f};
 	}
 
 	void EditorCamera::setViewportSize(uint32_t width, uint32_t height)
@@ -172,5 +173,109 @@ namespace Light
 	glm::quat EditorCamera::getOrientation() const
 	{
 		return glm::quat(glm::vec3(-m_pitch, -m_yaw, 0.0f));
+	}
+
+	std::vector<glm::vec4> EditorCamera::getFrustumCornersWorldSpace(const glm::mat4& projview)
+	{
+	    const auto inv = glm::inverse(projview);
+
+	    std::vector<glm::vec4> frustumCorners;
+    	for (unsigned int x = 0; x < 2; ++x)
+    	{
+    	    for (unsigned int y = 0; y < 2; ++y)
+    	    {
+        	    for (unsigned int z = 0; z < 2; ++z)
+        	    {
+        	        const glm::vec4 pt = inv * glm::vec4(2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f);
+        	        frustumCorners.push_back(pt / pt.w);
+            	}
+        	}
+   	 	}
+
+    	return frustumCorners;
+	}
+
+
+	std::vector<glm::vec4> EditorCamera::getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view)
+	{
+	    return getFrustumCornersWorldSpace(proj * view);
+	}
+
+	glm::mat4 EditorCamera::getLightSpaceMatrix(const float nearPlane, const float farPlane, glm::vec3 lightDir)
+	{
+	    const auto proj = glm::perspective(
+	        glm::radians(m_fovy), m_aspectRatio, nearPlane,
+	        farPlane);
+	    const auto corners = getFrustumCornersWorldSpace(proj, m_viewMatrix);
+
+	    glm::vec3 center = m_focalPoint;
+	    for (const auto& v : corners)
+	    {
+	        center += glm::vec3(v);
+	    }
+	    center /= corners.size();
+
+	    const auto lightView = glm::lookAt(center + lightDir, center, glm::vec3(0.0f, 1.0f, 0.0f));
+
+	    float minX = std::numeric_limits<float>::max();
+	    float maxX = std::numeric_limits<float>::min();
+	    float minY = std::numeric_limits<float>::max();
+	    float maxY = std::numeric_limits<float>::min();
+	    float minZ = std::numeric_limits<float>::max();
+	    float maxZ = std::numeric_limits<float>::min();
+	    for (const auto& v : corners)
+	    {
+	        const auto trf = lightView * v;
+	        minX = std::min(minX, trf.x);
+	        maxX = std::max(maxX, trf.x);
+	        minY = std::min(minY, trf.y);
+	        maxY = std::max(maxY, trf.y);
+	        minZ = std::min(minZ, trf.z);
+        	maxZ = std::max(maxZ, trf.z);
+    	}
+
+	    // Tune this parameter according to the scene
+	    constexpr float zMult = 10.0f;
+	    if (minZ < 0)
+	    {
+        minZ *= zMult;
+	    }
+	    else
+	    {
+	        minZ /= zMult;
+	    }
+	    if (maxZ < 0)
+	    {
+	        maxZ /= zMult;
+	    }
+	    else
+	    {
+	        maxZ *= zMult;
+	    }
+
+	    const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
+	
+    	return lightProjection * lightView;
+	}
+
+	std::vector<glm::mat4> EditorCamera::getLightSpaceMatrices(glm::vec3 lightDir)
+	{
+    	std::vector<glm::mat4> ret;
+    	for (size_t i = 0; i < shadowCascadeLevels.size() + 1; ++i)
+   	 	{
+        	if (i == 0)
+        	{
+            	ret.push_back(getLightSpaceMatrix(m_near, shadowCascadeLevels[i], lightDir));
+        	}
+        	else if (i < shadowCascadeLevels.size())
+        	{
+            	ret.push_back(getLightSpaceMatrix(shadowCascadeLevels[i - 1], shadowCascadeLevels[i],lightDir));
+        	}
+        	else
+        	{
+            ret.push_back(getLightSpaceMatrix(shadowCascadeLevels[i - 1], m_far, lightDir));
+        	}
+    	}
+    	return ret;
 	}
 }

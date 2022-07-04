@@ -19,6 +19,7 @@ namespace Light
 
 		void invalidate2D();
 		void invalidateCubemap();
+		void invalidateTexArray();
 		void resize(uint32_t width, uint32_t height) override;
 
 		int readPixelInt(uint32_t attachmentIndex, uint32_t x, uint32_t y) override;
@@ -51,6 +52,8 @@ namespace Light
 
 		std::vector<uint32_t> m_colorAttachmentIds;
 		uint32_t m_depthAttachmentId = 0;
+
+	
 	};
 
 }

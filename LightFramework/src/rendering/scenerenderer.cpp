@@ -254,7 +254,7 @@ namespace Light {
 		LIGHT_CORE_ASSERT(spotLights.size() <= 4, "Only 4 lights of each type supported now");
 
 		
-		// for (unsigned int i = 0; i < directionalLights.size(); i++)
+		if(directionalLights.size() == 1)
 			renderShadows(scene, directionalLights[0], 0,camera);
 		for (unsigned int i = 0; i < pointLights.size(); i++)
 			renderShadows(scene, pointLights[i], i);

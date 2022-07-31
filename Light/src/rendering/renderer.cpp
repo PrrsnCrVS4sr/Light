@@ -74,6 +74,7 @@ namespace Light
 		shader->setUniformInt("u_id", id);
 		shader->setUniformInt("u_n_dLights", (int)s_sceneData->directionalLights.size());
 		shader->setUniformInt("u_n_pLights", (int)s_sceneData->pointLights.size());
+		shader->setUniformInt("u_n_dLights", (int)s_sceneData->directionalLights.size());
 		shader->setUniformInt("u_n_sLights", (int)s_sceneData->spotLights.size());
 
 		shader->setUniformVec3("cameraPos", s_sceneData->cameraPosition);

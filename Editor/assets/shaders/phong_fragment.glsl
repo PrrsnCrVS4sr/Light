@@ -232,7 +232,8 @@ void main()
 
 	vec4 lighting = vec4(0.0, 0.0, 0.0, 0.0);
 	
-	lighting += calculateShading(u_dirLights[0], viewDir);
+    if(u_n_dLights > 0)
+	    lighting += calculateShading(u_dirLights[0], viewDir);
 	for(int i=0; i<u_n_pLights; i++)
 		lighting += calculateShading(u_pointLights[i], viewDir);
 	for(int i=0; i<u_n_sLights; i++)
